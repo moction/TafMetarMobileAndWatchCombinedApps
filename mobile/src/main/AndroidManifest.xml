@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="TAF/METAR"
+        android:theme="@style/Theme.TafMetar">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- Reçoit les messages envoyés par la montre (demande de refresh).
+             Le <data> est obligatoire : GMS envoie un intent porteur d'une URI wear://…, qu'un
+             intent-filter sans élément <data> ne matcherait jamais. Le pathPrefix "/request-refresh"
+             couvre aussi "/request-refresh-all". -->
+        <service
+            android:name=".datalayer.PhoneMessageListenerService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data
+                    android:scheme="wear"
+                    android:host="*"
+                    android:pathPrefix="/request-refresh" />
+            </intent-filter>
+        </service>
+
+        <!-- Déclenche le WorkManager périodique au démarrage du téléphone -->
+        <receiver
+            android:name=".work.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Widget d'écran d'accueil : dernier METAR de la première station suivie -->
+        <receiver
+            android:name=".widget.MetarWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/metar_widget_info" />
+        </receiver>
+
+    </application>
+</manifest>
